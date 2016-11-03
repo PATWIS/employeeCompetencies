@@ -1,0 +1,36 @@
+<link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-core/4.0.0/fabric.min.css">
+<link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-js/1.0.0/fabric.components.min.css">
+<link rel="stylesheet" href="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/Styles/styles.css" />
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/app.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Controllers/MainController.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Services/JSOMService.js"></script>
+<section ng-app="app" ng-controller="MainController">
+
+
+
+ <table class="ms-Table">
+    <thead>
+      <tr>
+      <th>Competentie</th>
+            <th>Instructie</th>
+            <th>Datum afterkenen</th>
+            <th>Datum herhaling</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat-start="competence in competences">
+        <td rowspan="{{competence.Instructions.length+1}}">{{competence.Name}}</td>
+      </tr>
+      <tr ng-repeat="instruction in competence.Instructions" ng-repeat-end>
+        <td>{{instruction.Name}} </td>
+        <td>{{instruction.DatumAftekenen | date:'dd/MM/yyyy'}} </td>
+        <td>{{instruction.DatumHerhaling | date:'dd/MM/yyyy'}}</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+
+</section>
