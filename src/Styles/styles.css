@@ -1,9 +1,32 @@
 table {
   border: none;
-  /*table-layout: fixed;*/
 }
 
 tr[ng-repeat-start], tr[ng-repeat-start] + tr{
-
    border-top: 1px solid #eaeaea;
 }
+
+/*
+Styles for ms-Datapicker
+ms-Datapicker uses modifier (BEM) begins with a lowercase letter
+
+ */
+
+.ms-Icon--chevronLeft:before {
+    content: '\E76B'
+}
+
+.ms-Icon--chevronRight:before {
+    content: '\E76C'
+}
+
+.ms-Icon--event:before {
+    content: '\ECA3'
+}
+
+.ms-Icon--xCircle:before {
+    content: '\E946'
+}
+
+
+/* end*/

@@ -2,24 +2,31 @@
 
     'use strict';
 
-    angular.module('app').controller('MainController', ['$scope', 'JSOMService', '$timeout', MainController]);
+    angular.module('app').controller('MainController', ['$scope', 'JSOMService', MainController]);
 
     function MainController($scope, JSOMService, $timeout) {
 
-        // $scope.competences = [];
-        // $scope.instructions = [];
-        $scope.employeeId = getUrlVars()["ID"];
+        $scope.employeeId = getUrlVars();
+        $scope.editingData = {};
+        $scope.value = new Date(2016, 3, 2);
+        
+        $scope.modify = function(data) {
+            $scope.editingData[data.Id] = true;
+        };
+        $scope.save = function(data) {
+            $scope.editingData[data.Id] = false;
+        };
 
 
         function getUrlVars() {
             var vars = {};
             var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-
                 vars[key] = value;
-
             });
-            return vars;
+            return vars.ID;
         }
+
+
 
         init();
 
@@ -55,8 +62,6 @@
 
                 JSOMService.getDates($scope.employeeId).then(function(result) {
 
-                   
-
                     var resultLookup = result.reduce(function(lookup, instructionData) {
                         lookup[instructionData.Id] = instructionData;
                         return lookup;
@@ -74,13 +79,13 @@
                             var instructionData = resultLookup[obj.Id];
 
                             if (instructionData) {
-                                obj.DatumAftekenen = instructionData.DatumAftekenen;
-                                obj.DatumHerhaling = instructionData.DatumHerhaling;
+                                obj.TrainingDate = instructionData.TrainingDate;
+                                obj.ExpiryDate = instructionData.ExpiryDate;
                             }
 
                         });
                     };
-              
+
                 });
 
             });

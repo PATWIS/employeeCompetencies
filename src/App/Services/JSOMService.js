@@ -53,22 +53,22 @@
 
                                 var employeesItem = enumerator.get_current();
                                 var competencesVals = employeesItem.get_item("Competentie"); //get multi lookup value (SP.FieldLookupValue[])
-                          
+
                                 if (competencesVals.length === 0) {
                                     result.push({
                                         Name: ""
                                     });
                                     continue;
                                 }
-                          
+
                                 for (var i = 0; i < competencesVals.length; i++) {
 
                                     result.push({
-                                        Id: competencesVals[i].get_lookupId(),    
+                                        Id: competencesVals[i].get_lookupId(),
                                         Name: competencesVals[i].get_lookupValue()
                                     });
                                 }
-                                
+
                             }
                             deferred.resolve(result);
                         }, function(sender, args) {
@@ -82,15 +82,14 @@
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
 
-                        
                         service.web = clientCtx.get_web();
                         var competencesList = service.web.get_lists().getByTitle('Overzicht Competenties');
 
                         var query = "<View><Query><Where><In><FieldRef Name='ID'/><Values>";
-                                    angular.forEach(competenceIds, function(value, index) {
-                                        query = query + "<Value Type='Counter'>" + value + "</Value>";
-                                    });
-                       
+                        angular.forEach(competenceIds, function(value, index) {
+                            query = query + "<Value Type='Counter'>" + value + "</Value>";
+                        });
+
                         query = query + "</Values></In></Where></Query></View>";
 
                         var camlQuery = new SP.CamlQuery();
@@ -105,7 +104,7 @@
                             while (enumerator.moveNext()) {
                                 var instructions = [];
                                 var competencesItem = enumerator.get_current();
-                                var instructionsVals = competencesItem.get_item("Competentie_x0020_documenten"); //get multi lookup value (SP.FieldLookupValue[])
+                                var instructionsVals = competencesItem.get_item("Competentie_x0020_documenten");
 
                                 if (instructionsVals.length === 0) {
                                     instructions.push({
@@ -122,7 +121,7 @@
                                 }
 
                                 result.push({
-                                    Id: competencesItem.get_item("ID"), 
+                                    Id: competencesItem.get_item("ID"),
                                     Name: competencesItem.get_item("Title"),
                                     Instructions: instructions
                                 })
@@ -131,12 +130,9 @@
 
                             deferred.resolve(result);
 
-
-
                         }, function(sender, args) {
 
                             deferred.reject(args.get_message());
-
 
                         });
                     });
@@ -147,15 +143,15 @@
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
 
-                       
+
                         service.web = clientCtx.get_web();
                         var herhalingData = service.web.get_lists().getByTitle('Instructie Trainingen');
 
                         var query = new SP.CamlQuery();
-                          query.set_viewXml("<View><Query><Where>\
+                        query.set_viewXml("<View><Query><Where>\
                                                             <Eq><FieldRef Name='Medewerker' LookupId='TRUE'/><Value Type='Lookup'>" + emploteeId + "</Value></Eq>\
                                                         </Where></Query></View>");
-                      
+
                         var instructions = herhalingData.getItems(query);
 
                         clientCtx.load(instructions, 'Include(Medewerker, Instructie, DatumAftekenen, DatumHerhaling)');
@@ -164,14 +160,14 @@
                             var enumerator = instructions.getEnumerator();
                             var result = [];
                             while (enumerator.moveNext()) {
-                              
+
                                 var herhalingDataItem = enumerator.get_current();
-                    
+
 
                                 result.push({
                                     Id: herhalingDataItem.get_item("Instructie").get_lookupId(),
-                                    DatumAftekenen : herhalingDataItem.get_item("DatumAftekenen"),
-                                    DatumHerhaling : herhalingDataItem.get_item("DatumHerhaling")
+                                    TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
+                                    ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
                                 })
 
                             }

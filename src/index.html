@@ -1,12 +1,21 @@
 <link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-core/4.0.0/fabric.min.css">
 <link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-js/1.0.0/fabric.components.min.css">
 <link rel="stylesheet" href="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/Styles/styles.css" />
-
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/Scripts/picker.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/Scripts/picker.date.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ngOfficeUiFabric/0.12.8/ngOfficeUiFabric.min.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/app.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Controllers/MainController.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Services/JSOMService.js"></script>
 <section ng-app="app" ng-controller="MainController">
+
+
+<div class="ms-TextField">
+<uif-datepicker ng-model="value"></uif-datepicker>
+ </div>
 
 
 
@@ -24,13 +33,16 @@
         <td rowspan="{{competence.Instructions.length+1}}">{{competence.Name}}</td>
       </tr>
       <tr ng-repeat="instruction in competence.Instructions" ng-repeat-end>
-        <td>{{instruction.Name}} </td>
-        <td>{{instruction.DatumAftekenen | date:'dd/MM/yyyy'}} </td>
-        <td>{{instruction.DatumHerhaling | date:'dd/MM/yyyy'}}</td>
+        <td ng-bind="instruction.Name"></td>
+        <td>
+            <div ng-hide="editingData[instruction.Id]" ng-bind="instruction.TrainingDate | date:'dd/MM/yyyy'"></div>
+          <div class="ms-TextField" ng-show="editingData[instruction.Id]"> <uif-datepicker uif-date-format="dd/mm/yyyy" ng-model="instruction.TrainingDate"></uif-datepicker></div>
+        </td>
+        <td>{{instruction.ExpiryDate | date:'dd/MM/yyyy'}}</td>
+        <td><div ng-hide="editingData[instruction.Id]"><i class="ms-Icon ms-Icon--Edit" ng-click="modify(instruction)"></i></div>
+        <div ng-show="editingData[instruction.Id]"><i class="ms-Icon ms-Icon--Save" ng-click="save(instruction)"></i></div></td>
       </tr>
 
     </tbody>
   </table>
-
-
 </section>
