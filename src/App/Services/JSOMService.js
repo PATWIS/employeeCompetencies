@@ -30,13 +30,13 @@
                     return deferred.promise;
                 }
 
-                 service.getEmployees = function() {
+                service.getEmployees = function() {
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
 
                         service.web = clientCtx.get_web();
                         var employeesList = service.web.get_lists().getByTitle('Overzicht Medewerkers');
-                        
+
 
                         var query = new SP.CamlQuery();
 
@@ -52,26 +52,26 @@
                         clientCtx.executeQueryAsync(function(sender, args) {
                             var enumerator = employees.getEnumerator();
                             var result = [];
-                            
+
                             while (enumerator.moveNext()) {
                                 var competences = [];
                                 var employeesItem = enumerator.get_current();
                                 var competencesVals = employeesItem.get_item("Competentie"); //get multi lookup value (SP.FieldLookupValue[])
-                                
+
                                 if (competencesVals.length !== 0) {
-                                    
-                                     for (var i = 0; i < competencesVals.length; i++) {
 
-                                    competences.push({
-                                        Id: competencesVals[i].get_lookupId()
-                                    });
-                                }
+                                    for (var i = 0; i < competencesVals.length; i++) {
 
-                                result.push({
-                                    Id: employeesItem.get_item('ID'),
-                                    Name: employeesItem.get_item('Title'),
-                                    Competences: competences
-                                })
+                                        competences.push({
+                                            Id: competencesVals[i].get_lookupId()
+                                        });
+                                    }
+
+                                    result.push({
+                                        Id: employeesItem.get_item('ID'),
+                                        Name: employeesItem.get_item('Title'),
+                                        Competences: competences
+                                    })
                                 }
                             }
                             localStorage.setItem("employees", JSON.stringify(result));
@@ -210,24 +210,24 @@
                                 var instructions = [];
                                 var competencesItem = enumerator.get_current();
                                 var instructionsVals = competencesItem.get_item("Competentie_x0020_documenten");
-                                
+
                                 if (instructionsVals.length !== 0) {
-                                    
+
                                     for (var i = 0; i < instructionsVals.length; i++) {
 
-                                    instructions.push({
-                                        Id: instructionsVals[i].get_lookupId()
-                                    });
+                                        instructions.push({
+                                            Id: instructionsVals[i].get_lookupId()
+                                        });
+                                    }
+
+                                    result.push({
+                                        Id: competencesItem.get_item("ID"),
+                                        Name: competencesItem.get_item("Title"),
+                                        Instructions: instructions
+                                    })
+
                                 }
 
-                                result.push({
-                                    Id: competencesItem.get_item("ID"),
-                                    Name: competencesItem.get_item("Title"),
-                                    Instructions: instructions
-                                })
-
-                                }
-                          
                             }
 
                             deferred.resolve(result);
@@ -257,20 +257,20 @@
                             var enumerator = instructions.getEnumerator();
                             var result = [];
                             while (enumerator.moveNext()) {
-                                
+
                                 var instructionsItem = enumerator.get_current();
-                                
+
                                 result.push({
                                     Id: instructionsItem.get_item("ID"),
-                                    Category: instructionsItem.get_item("Categorie")     
+                                    Category: instructionsItem.get_item("Categorie")
                                 })
 
-                                
-                          
+
+
                             }
                             localStorage.setItem("instructions", JSON.stringify(result));
-                        
-                           var storedInstructions = JSON.parse(localStorage.getItem("instructions"));
+
+                            var storedInstructions = JSON.parse(localStorage.getItem("instructions"));
                             console.log(storedInstructions);
 
 
@@ -285,7 +285,7 @@
                     return deferred.promise;
                 };
 
-                service.getDates = function() {
+                service.getHerhalingData = function() {
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
 
@@ -293,36 +293,67 @@
                         service.web = clientCtx.get_web();
                         var herhalingData = service.web.get_lists().getByTitle('Instructie Trainingen');
 
-                        var query = new SP.CamlQuery();
+                        var itemPosition = null;
+                        var result = [];
                        
-                        var instructions = herhalingData.getItems(query);
-
-                        clientCtx.load(instructions, 'Include(ID, Medewerker, Instructie, DatumAftekenen, DatumHerhaling, Instructie_x003a_Documentnummer)');
-
-                        clientCtx.executeQueryAsync(function(sender, args) {
-                            var enumerator = instructions.getEnumerator();
-                            var result = [];
-                            while (enumerator.moveNext()) {
-
-                                var herhalingDataItem = enumerator.get_current();
+                        var foo = function() {
 
 
-                                result.push({
-                                    
-                                    MedewerkerId: herhalingDataItem.get_item("Medewerker").get_lookupId(),
-                                    InstructieId: herhalingDataItem.get_item("Instructie").get_lookupId(),
-                                    InstructieName: herhalingDataItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue(),
-                                    TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
-                                    ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
-                                })
 
-                            }
+                            var camlQuery = new SP.CamlQuery();
+                          
+                            camlQuery.set_listItemCollectionPosition(itemPosition);                         
+                            var query = "<View><RowLimit>5000</RowLimit></View>";
+                            camlQuery.set_viewXml(query);
+                             
+                           
+                            var instructions = herhalingData.getItems(camlQuery);
+                             
 
-                            deferred.resolve(result);
+                            clientCtx.load(instructions);
 
-                        }, function(sender, args) {
-                            deferred.reject(args.get_message());
-                        });
+
+                            clientCtx.executeQueryAsync(function(sender, args) {
+                                var enumerator = instructions.getEnumerator();
+                          
+                                while (enumerator.moveNext()) {
+                                    console.log("foo Push");
+                                    var herhalingDataItem = enumerator.get_current();
+
+                                    result.push({
+
+                                        MedewerkerId: herhalingDataItem.get_item("Medewerker").get_lookupId(),
+                                        InstructieId: herhalingDataItem.get_item("Instructie").get_lookupId(),
+                                        InstructieName: herhalingDataItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue(),
+                                        TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
+                                        ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
+                                    })
+
+                                }
+                               
+                                itemPosition = instructions.get_listItemCollectionPosition();
+                              
+                                console.log(itemPosition);
+
+
+
+                                if (itemPosition != null) {                                     
+                                    foo();
+                                } else {
+                                    deferred.resolve(result);
+                                }
+
+                                
+
+                            }, function(sender, args) {
+                                deferred.reject(args.get_message());
+                            });
+                            
+                        }
+
+                         foo();
+
+
                     });
                     return deferred.promise;
                 };
@@ -375,9 +406,9 @@
 
                         service.web = clientCtx.get_web();
                         var employeeInstructionsList = service.web.get_lists().getByTitle('Instructie Trainingen');
-                       
+
                         var camlQuery = new SP.CamlQuery();
-                        
+
                         var employeeInstructions = employeeInstructionsList.getItems(camlQuery);
 
                         clientCtx.load(employeeInstructions, 'Include(Medewerker, Instructie, Instructie_x003a_Documentnummer, DatumAftekenen, DatumHerhaling)');
@@ -387,16 +418,16 @@
                             var result = [];
                             while (enumerator.moveNext()) {
                                 var employeeInstructionsItem = enumerator.get_current();
-                            
+
                                 result.push({
-                                    IdEmployee: employeeInstructionsItem.get_item('Medewerker').get_lookupId(), 
+                                    IdEmployee: employeeInstructionsItem.get_item('Medewerker').get_lookupId(),
                                     Id: employeeInstructionsItem.get_item("Instructie"),
-                                    Name: employeeInstructionsItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue() 
+                                    Name: employeeInstructionsItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue()
                                 })
 
                             }
 
-                           deferred.resolve(result);
+                            deferred.resolve(result);
 
                         }, function(sender, args) {
 
