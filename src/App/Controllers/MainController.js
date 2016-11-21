@@ -9,7 +9,7 @@
         $scope.employeeId = getUrlVars();
         $scope.editingData = {};
         $scope.value = new Date(2016, 3, 2);
-        
+         
         $scope.modify = function(data) {
              $scope.editingData = angular.copy(data);
             $scope.editingData[data.IsVisible] = true;
@@ -107,7 +107,39 @@
 
                 });
 
-            });
+            }).then(function() {
+
+                JSOMService.getInstructions().then(function(result) {
+
+                    var resultLookup = result.reduce(function(lookup, instruction) {
+                        lookup[instruction.Id] = instruction;
+                        return lookup;
+                    }, {});
+
+
+                      for (var i = 0; i < $scope.competences.length; i++) {
+
+                        var instructions = $scope.competences[i].Instructions;
+
+                        // console.log(instructions);
+
+                        instructions.forEach(function(obj) {
+
+                            var instruction = resultLookup[obj.Id];
+
+                            if (instruction) {
+                                obj.Category = instruction.Category;
+                               
+                            }
+
+                        });
+                    };
+
+
+
+                });
+
+            });;
 
         }
     }
