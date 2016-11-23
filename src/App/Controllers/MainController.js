@@ -5,29 +5,53 @@
     angular.module('app').controller('MainController', ['$scope', 'JSOMService', MainController]);
 
     function MainController($scope, JSOMService, $timeout) {
-
+ 
         $scope.employeeId = getUrlVars();
         $scope.editingData = {};
         $scope.value = new Date(2016, 3, 2);
-         
-        $scope.modify = function(data) {
-             $scope.editingData = angular.copy(data);
-            $scope.editingData[data.IsVisible] = true;
-            
-        };
-        $scope.save = function(data) {
-            $scope.editingData[data.IsVisible] = false;
-            $scope.editingData.Name="foo";
+        $scope.isVisible = true; 
+ 
+        $scope.modify = function(competenceID, data) {
 
-            $scope.competences.forEach(function(competence){
-                $scope.competence.Instructions[data] = angular.copy($scope.editingData);
-            })  
+            $scope.editingData[competenceID + '-' + data.Id] = true;
+            $scope.isVisible = false;
+            console.log(data.Category);
+
+        };
+        $scope.save = function(competenceID, data) {
+            $scope.editingData[competenceID + '-' + data.Id] = false;
+             $scope.isVisible = true;
+
+            
+
+            setNewValue(data);
             $scope.reset();
         };
 
         $scope.reset = function() {
             $scope.editingData = {};
         };
+
+        var setNewValue = function(i) {
+            $scope.competences.forEach(function(competence) {
+
+                competence.Instructions.forEach(function(instruction) {
+
+                    if (instruction.Id === i.Id) {
+
+                        instruction.TrainingDate = i.TrainingDate;
+                        instruction.ExpiryDate = addNYears(i.TrainingDate,3);
+
+                    }
+                });
+            });
+        };
+
+        var addNYears = function(date, n) {
+            var d = new Date(date);
+            d.setFullYear(d.getFullYear() + n);
+            return d.toJSON().slice(0, 10);
+        }
 
 
         function getUrlVars() {
@@ -37,6 +61,14 @@
             });
             return vars.ID;
         }
+
+
+          // JSOMService.saveChanges($scope.editingData).then(function () {
+          //           $scope.hasSpinner = false;
+          //           $scope.isSaved = true;
+          //           $scope.header = "Success";
+
+          //       });
 
 
 
@@ -55,8 +87,6 @@
                     return competence.Id;
                 });
 
-                console.log(competenceIds);
-
                 return JSOMService.getCompetenceInstructions(competenceIds).then(function(result) {
 
                     var resultLookup = result.reduce(function(lookup, instruction) {
@@ -69,7 +99,7 @@
 
                     $scope.competences.forEach(function(competence) {
                         var instruction = resultLookup[competence.Id];
-                        
+
                         if (instruction) {
                             competence.Instructions = instruction.Instructions; // added new key in object
                         }
@@ -81,8 +111,8 @@
 
                 JSOMService.getInstructionDates($scope.employeeId).then(function(result) {
 
-                    var resultLookup = result.reduce(function(lookup, instructionData) {
-                        lookup[instructionData.Id] = instructionData;
+                    var resultLookup = result.reduce(function(lookup, instructionDate) {
+                        lookup[instructionDate.Id] = instructionDate;
                         return lookup;
                     }, {});
 
@@ -95,11 +125,14 @@
 
                         instructions.forEach(function(obj) {
 
-                            var instructionData = resultLookup[obj.Id];
+                            var instructionDate = resultLookup[obj.Id];
 
-                            if (instructionData) {
-                                obj.TrainingDate = instructionData.TrainingDate;
-                                obj.ExpiryDate = instructionData.ExpiryDate;
+                            if (instructionDate) {
+                                obj.TrainingDate = instructionDate.TrainingDate;
+                                obj.ExpiryDate = instructionDate.ExpiryDate;
+                            } else {
+                                obj.TrainingDate = null;
+                                obj.ExpiryDate = null;
                             }
 
                         });
@@ -117,7 +150,7 @@
                     }, {});
 
 
-                      for (var i = 0; i < $scope.competences.length; i++) {
+                    for (var i = 0; i < $scope.competences.length; i++) {
 
                         var instructions = $scope.competences[i].Instructions;
 
@@ -129,7 +162,7 @@
 
                             if (instruction) {
                                 obj.Category = instruction.Category;
-                               
+
                             }
 
                         });

@@ -10,13 +10,7 @@
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/app.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Controllers/MainController.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Services/JSOMService.js"></script>
-<section ng-app="app" ng-controller="MainController">
-
-
-<div class="ms-TextField">
-<uif-datepicker ng-model="value"></uif-datepicker>
- </div>
-
+<section id="employeeCard" ng-app="app" ng-controller="MainController">
 
 
  <table class="ms-Table">
@@ -30,17 +24,19 @@
     </thead>
     <tbody>
       <tr ng-repeat-start="competence in competences">
-        <td rowspan="{{competence.Instructions.length+1}}">{{competence.Name}}</td>
+        <td rowspan="{{competence.Instructions.length+1}}" ng-bind="competence.Name"></td>
       </tr>
       <tr ng-repeat="instruction in competence.Instructions" ng-repeat-end>
-        <td ng-bind="instruction.Name"></td>
-        <td>
-            <div ng-hide="editingData[instruction.Id]" ng-bind="instruction.TrainingDate | date:'dd/MM/yyyy'"></div>
-          <div class="ms-TextField" ng-show="editingData[instruction.Id]"> <uif-datepicker uif-date-format="dd/mm/yyyy" ng-model="instruction.TrainingDate"></uif-datepicker></div>
+        <td ng-model="instruction.Name"  ng-bind="instruction.Name"></td>
+        <td class="editDate">
+            <div ng-hide="editingData[competence.Id+'-'+instruction.Id]"><span ng-hide="instruction.TrainingDate == ''">{{instruction.TrainingDate | date:'dd/MM/yyyy'}}</span><span ng-show="instruction.TrainingDate == ''">not set</span></div>
+          <div class="ms-TextField" ng-show="editingData[competence.Id+'-'+instruction.Id]">
+            <uif-datepicker uif-date-format="dd/mm/yyyy" ng-model="instruction.TrainingDate"></uif-datepicker>
+          </div>
         </td>
-        <td>{{instruction.ExpiryDate | date:'dd/MM/yyyy'}}</td>
-        <td><div ng-hide="editingData[instruction.Id]"><i class="ms-Icon ms-Icon--Edit" ng-click="modify(instruction)"></i></div>
-        <div ng-show="editingData[instruction.Id]"><i class="ms-Icon ms-Icon--Save" ng-click="save(instruction)"></i></div></td>
+        <td><span ng-hide="instruction.TrainingDate == ''">{{instruction.ExpiryDate | date:'dd/MM/yyyy'}}</span><span ng-show="instruction.TrainingDate == ''">not set</span></td>
+        <td><div ng-hide="editingData[competence.Id+'-'+instruction.Id] || !isVisible"><i class="ms-Icon ms-Icon--Edit" ng-click="modify(competence.Id, instruction)"></i></div>
+        <div ng-show="editingData[competence.Id+'-'+instruction.Id]"><i class="ms-Icon ms-Icon--Save" ng-click="save(competence.Id, instruction)"></i></div></td>
       </tr>
 
     </tbody>

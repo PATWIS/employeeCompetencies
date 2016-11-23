@@ -2,8 +2,39 @@ table {
   border: none;
 }
 
+.editDate {
+	width: 138px;
+}
+
+.ms-DatePicker {
+	margin-bottom: 0!important;
+}
+
+.ms-TextField {
+	margin-bottom: 0!important;
+}
+
+.ms-TextField-field {
+	min-width: 0!important;
+}
+
+#employeeCard > .ms-Table {
+	width: 651px;
+	margin-right: auto;
+    margin-left: auto;
+}
+
+.ms-Table tr td, .ms-Table tr th {
+	border: 1px solid #eaeaea;
+	height: 38px;
+} 
+
 tr[ng-repeat-start], tr[ng-repeat-start] + tr{
    border-top: 1px solid #eaeaea;
+}
+
+.ms-DatePicker-table td {
+	padding: 0;
 }
 
 /*
@@ -30,3 +61,4 @@ ms-Datapicker uses modifier (BEM) begins with a lowercase letter
 
 
 /* end*/
+
