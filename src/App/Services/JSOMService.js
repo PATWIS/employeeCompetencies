@@ -28,7 +28,28 @@
                     });
 
                     return deferred.promise;
-                }
+                };
+
+
+                service.getSiteUrl = function() {
+                    var deferred = $q.defer();
+                    contextLoaded.promise.then(function() {
+                        var ctx = new SP.ClientContext();
+                        var site = ctx.get_site();
+                        ctx.load(site);
+                        ctx.executeQueryAsync(function(s, a) {
+
+                            var result = site.get_url();
+                            deferred.resolve(result);
+                        });
+
+
+                    });
+
+                    return deferred.promise;
+                };
+
+
 
                 service.getEmployees = function() {
                     var deferred = $q.defer();
@@ -39,11 +60,6 @@
 
 
                         var query = new SP.CamlQuery();
-
-                        // QUERY CAML WORKS ONLY FOR 5k items 
-                        // query.set_viewXml("<View><Query><Where>\
-                        //                                     <IsNotNull><FieldRef Name='Competentie'/></IsNotNull>\
-                        //                                 </Where></Query></View>");
 
                         var employees = employeesList.getItems(query);
 
@@ -136,7 +152,10 @@
                     contextLoaded.promise.then(function() {
 
                         service.web = clientCtx.get_web();
-                        var competencesList = service.web.get_lists().getByTitle('Overzicht Competenties');
+
+                        var list = service.web.get_lists().getByTitle('Overzicht Competenties');
+                        var listRootFolder = list.get_rootFolder();
+                        clientCtx.load(listRootFolder);
 
                         var query = "<View><Query><Where><In><FieldRef Name='ID'/><Values>";
                         angular.forEach(competenceIds, function(value, index) {
@@ -147,18 +166,26 @@
 
                         var camlQuery = new SP.CamlQuery();
                         camlQuery.set_viewXml(query);
-                        var competences = competencesList.getItems(camlQuery);
+                        var competences = list.getItems(camlQuery);
 
                         clientCtx.load(competences, 'Include(Title, ID, Competentie_x0020_documenten)');
-
+                       
                         clientCtx.executeQueryAsync(function(sender, args) {
+
+                            var listURL = listRootFolder.get_serverRelativeUrl();
+                            console.log(listURL);
+                            
+
+
                             var enumerator = competences.getEnumerator();
                             var result = [];
                             while (enumerator.moveNext()) {
                                 var instructions = [];
                                 var competencesItem = enumerator.get_current();
                                 var instructionsVals = competencesItem.get_item("Competentie_x0020_documenten");
-
+                                
+                                // var fullUrl = competencesItem.ParentList.ParentWeb.Site.MakeFullUrl(competencesItem.ParentList.DefaultDisplayFormUrl);
+                              
                                 if (instructionsVals.length === 0) {
                                     instructions.push({
                                         Name: ""
@@ -197,13 +224,14 @@
                     contextLoaded.promise.then(function() {
 
                         service.web = clientCtx.get_web();
-                        var competencesList = service.web.get_lists().getByTitle('Overzicht Competenties');
+                        var list = service.web.get_lists().getByTitle('Overzicht Competenties');
                         var camlQuery = new SP.CamlQuery();
-                        var competences = competencesList.getItems(camlQuery);
+                        var competences = list.getItems(camlQuery);
 
                         clientCtx.load(competences, 'Include(Title, ID, Competentie_x0020_documenten)');
 
                         clientCtx.executeQueryAsync(function(sender, args) {
+
                             var enumerator = competences.getEnumerator();
                             var result = [];
                             while (enumerator.moveNext()) {
@@ -242,42 +270,30 @@
                 };
 
 
-                service.getInstructions = function() {
+                service.getInstructionCategory = function(Id) {
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
 
                         service.web = clientCtx.get_web();
                         var instructionsList = service.web.get_lists().getByTitle('Productie instructies documenten');
-                        var camlQuery = new SP.CamlQuery();
-                        var instructions = instructionsList.getItems(camlQuery);
+                        var listItem = instructionsList.getItemById(Id);
 
-                        clientCtx.load(instructions, 'Include(Documentnummer, ID, Categorie)');
+                        clientCtx.load(listItem);
 
                         clientCtx.executeQueryAsync(function(sender, args) {
-                            var enumerator = instructions.getEnumerator();
-                            var result = [];
-                            while (enumerator.moveNext()) {
 
-                                var instructionsItem = enumerator.get_current();
+                            var result = {};
+                            result.Id = listItem.get_item("ID");
+                            result.Category = listItem.get_item("Categorie");
 
-                                result.push({
-                                    Id: instructionsItem.get_item("ID"),
-                                    Category: instructionsItem.get_item("Categorie")
-                                })
-
-
-
-                            }
-                            localStorage.setItem("instructions", JSON.stringify(result));
-
-                            var storedInstructions = JSON.parse(localStorage.getItem("instructions"));
-                            console.log(storedInstructions);
-
-
+                            // localStorage.setItem("instructions", JSON.stringify(result));
+                            // LOCAL STORAGE 
+                            // var storedInstructions = JSON.parse(localStorage.getItem("instructions"));
+                            // console.log(storedInstructions)
                             deferred.resolve(result);
 
                         }, function(sender, args) {
-
+                            // alert('Request failed. \nError: ' + args.get_message() + '\nStackTrace: ' + args.get_stackTrace());
                             deferred.reject(args.get_message());
 
                         });
@@ -288,70 +304,81 @@
                 service.getHerhalingData = function() {
                     var deferred = $q.defer();
                     contextLoaded.promise.then(function() {
+                        var listTitle = 'Instructie Trainingen';
+                        var viewTitle = 'Expire for 3 months';
 
+                        function getItemsFromView(listTitle, viewTitle) {
 
-                        service.web = clientCtx.get_web();
-                        var herhalingData = service.web.get_lists().getByTitle('Instructie Trainingen');
+                            var context = new SP.ClientContext.get_current();
+                            var list = context.get_web().get_lists().getByTitle(listTitle);
+                            var view = list.get_views().getByTitle(viewTitle);
+                            context.load(view);
 
-                        var itemPosition = null;
-                        var result = [];
-                       
-                        var foo = function() {
-
-
-
-                            var camlQuery = new SP.CamlQuery();
-                          
-                            camlQuery.set_listItemCollectionPosition(itemPosition);                         
-                            var query = "<View><RowLimit>5000</RowLimit></View>";
-                            camlQuery.set_viewXml(query);
-                             
-                           
-                            var instructions = herhalingData.getItems(camlQuery);
-                             
-
-                            clientCtx.load(instructions);
-
-
-                            clientCtx.executeQueryAsync(function(sender, args) {
-                                var enumerator = instructions.getEnumerator();
-                          
-                                while (enumerator.moveNext()) {
-                                    console.log("foo Push");
-                                    var herhalingDataItem = enumerator.get_current();
-
-                                    result.push({
-
-                                        MedewerkerId: herhalingDataItem.get_item("Medewerker").get_lookupId(),
-                                        InstructieId: herhalingDataItem.get_item("Instructie").get_lookupId(),
-                                        InstructieName: herhalingDataItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue(),
-                                        TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
-                                        ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
-                                    })
-
-                                }
-                               
-                                itemPosition = instructions.get_listItemCollectionPosition();
-                              
-                                console.log(itemPosition);
-
-
-
-                                if (itemPosition != null) {                                     
-                                    foo();
-                                } else {
-                                    deferred.resolve(result);
-                                }
-
-                                
-
-                            }, function(sender, args) {
-                                deferred.reject(args.get_message());
-                            });
-                            
+                            context.executeQueryAsync(
+                                function(sender, args) { getItemsFromList(listTitle, "<View><RowLimit>5000</RowLimit><Query>" + view.get_viewQuery() + "</Query></View>") },
+                                function(sender, args) { alert("error: " + args.get_message()); }
+                            );
                         }
 
-                         foo();
+                        function getItemsFromList(listTitle, queryText) {
+                            var context = new SP.ClientContext.get_current();
+                            var list = context.get_web().get_lists().getByTitle(listTitle);
+
+                            var itemPosition = null;
+                            var result = [];
+
+                            var getListItemsByListItemCollection = function() {
+
+                                var camlQuery = new SP.CamlQuery();
+
+                                camlQuery.set_listItemCollectionPosition(itemPosition);
+                                // var query = "<View><RowLimit>5000</RowLimit></View>";
+                                camlQuery.set_viewXml(queryText);
+
+                                var instructions = list.getItems(camlQuery);
+
+                                clientCtx.load(instructions);
+
+                                clientCtx.executeQueryAsync(function(sender, args) {
+                                    var enumerator = instructions.getEnumerator();
+
+                                    while (enumerator.moveNext()) {
+
+                                        var herhalingDataItem = enumerator.get_current();
+
+                                        result.push({
+
+                                            MedewerkerId: herhalingDataItem.get_item("Medewerker").get_lookupId(),
+                                            InstructieId: herhalingDataItem.get_item("Instructie").get_lookupId(),
+                                            InstructieName: herhalingDataItem.get_item("Instructie_x003a_Documentnummer").get_lookupValue(),
+                                            TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
+                                            ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
+                                        })
+
+                                    }
+
+                                    itemPosition = instructions.get_listItemCollectionPosition();
+
+                                    console.log(itemPosition);
+
+                                    if (itemPosition != null) {
+                                        getListItemsByListItemCollection();
+                                    } else {
+                                        deferred.resolve(result);
+                                    }
+
+                                }, function(sender, args) {
+                                    deferred.reject(args.get_message());
+                                });
+
+                            }
+
+                            getListItemsByListItemCollection();
+
+                        }
+
+
+                        getItemsFromView(listTitle, viewTitle);
 
 
                     });
@@ -373,7 +400,7 @@
 
                         var instructions = herhalingData.getItems(query);
 
-                        clientCtx.load(instructions, 'Include(Medewerker, Instructie, DatumAftekenen, DatumHerhaling)');
+                        clientCtx.load(instructions, 'Include(ID, Instructie, DatumAftekenen, DatumHerhaling)');
 
                         clientCtx.executeQueryAsync(function(sender, args) {
                             var enumerator = instructions.getEnumerator();
@@ -384,7 +411,8 @@
 
 
                                 result.push({
-                                    Id: herhalingDataItem.get_item("Instructie").get_lookupId(),
+                                    ItemId: herhalingDataItem.get_item("ID"),
+                                    InstructieId: herhalingDataItem.get_item("Instructie").get_lookupId(),
                                     TrainingDate: herhalingDataItem.get_item("DatumAftekenen"),
                                     ExpiryDate: herhalingDataItem.get_item("DatumHerhaling")
                                 })
@@ -436,6 +464,33 @@
                         });
                     });
                     return deferred.promise;
+                };
+
+
+                service.saveChanges = function(editData) {
+                    var deferred = $q.defer();
+
+                    contextLoaded.promise.then(function() {
+                        service.web = clientCtx.get_web();
+
+                        var list = service.web.get_lists().getByTitle('Instructie Trainingen');
+                        var listItem = list.getItemById(editData.ItemId);
+                        listItem.set_item("DatumAftekenen", editData.TrainingDate);
+                        listItem.set_item("DatumHerhaling", editData.ExpiryDate);
+                        listItem.update();
+
+                        clientCtx.executeQueryAsync(function onQuerySucceeded() {
+                            alert('Item updated!');
+                            deferred.resolve();
+                        }, function onQueryFailed(sender, args) {
+
+                            alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                        });
+
+                    });
+
+                    return deferred.promise;
+
                 };
 
 

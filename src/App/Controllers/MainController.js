@@ -8,28 +8,45 @@
  
         $scope.employeeId = getUrlVars();
         $scope.editingData = {};
-        $scope.value = new Date(2016, 3, 2);
-        $scope.isVisible = true; 
+        $scope.value; 
+        // $scope.value = "https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Lists/Overzicht%20Competenties/DispForm.aspx?ID=188"
+        $scope.isVisible = true;
+        $scope.isLoaded = false;
  
         $scope.modify = function(competenceID, data) {
-
+            
             $scope.editingData[competenceID + '-' + data.Id] = true;
             $scope.isVisible = false;
-            console.log(data.Category);
-
+            $scope.isLoaded = true;
+            
+            JSOMService.getInstructionCategory(data.Id).then(function(result) {  
+                    $scope.CategoryLoaded = true;
+                     $scope.isLoaded = false;
+                    data.Category= result.Category;
+                });
         };
         $scope.save = function(competenceID, data) {
-            $scope.editingData[competenceID + '-' + data.Id] = false;
-             $scope.isVisible = true;
-
-            
-
+             $scope.isLoaded = true;
+            // $scope.isVisible = true;
+           
             setNewValue(data);
-            $scope.reset();
+             
+
+             JSOMService.saveChanges(data).then(function(){
+              $scope.editingData[competenceID + '-' + data.Id] = false;
+              $scope.editingData[data.Id + '-isEdit'] = true;
+              $scope.isLoaded = false;
+              $scope.isVisible = true;
+                     
+               // $scope.reset(); 
+             });
+            
+            
+            
         };
 
         $scope.reset = function() {
-            $scope.editingData = {};
+            // delete $scope.editingData[competenceID + '-' + data.Id];
         };
 
         var setNewValue = function(i) {
@@ -40,7 +57,23 @@
                     if (instruction.Id === i.Id) {
 
                         instruction.TrainingDate = i.TrainingDate;
-                        instruction.ExpiryDate = addNYears(i.TrainingDate,3);
+
+                        switch (i.Category) {
+                            case "Cat. 1":
+                                instruction.ExpiryDate = addNYears(i.TrainingDate,1);
+                                break;
+                            case "Cat. 2":
+                                instruction.ExpiryDate = addNYears(i.TrainingDate,2);
+                                break;
+                            case "Cat. 3":
+                                instruction.ExpiryDate = addNYears(i.TrainingDate,3);
+                                break;
+                            default: 
+                                instruction.ExpiryDate = addNYears(i.TrainingDate,99);
+
+                        }
+
+                        
 
                     }
                 });
@@ -62,13 +95,12 @@
             return vars.ID;
         }
 
+                
 
-          // JSOMService.saveChanges($scope.editingData).then(function () {
-          //           $scope.hasSpinner = false;
-          //           $scope.isSaved = true;
-          //           $scope.header = "Success";
+           
 
-          //       });
+
+         
 
 
 
@@ -76,10 +108,15 @@
 
         function init() {
 
+            JSOMService.getSiteUrl().then(function(result) {
+                $scope.siteUrl = result;
+            
+            });
+
             // var valuesToLoad = 3;
             JSOMService.getEmployeeCompetences($scope.employeeId).then(function(result) {
                 $scope.competences = result;
-                // console.log($scope.competences);
+                
 
             }).then(function() {
 
@@ -94,7 +131,7 @@
                         return lookup;
                     }, {});
 
-                    console.log(resultLookup);
+                    
 
 
                     $scope.competences.forEach(function(competence) {
@@ -111,8 +148,9 @@
 
                 JSOMService.getInstructionDates($scope.employeeId).then(function(result) {
 
+
                     var resultLookup = result.reduce(function(lookup, instructionDate) {
-                        lookup[instructionDate.Id] = instructionDate;
+                        lookup[instructionDate.InstructieId] = instructionDate;
                         return lookup;
                     }, {});
 
@@ -121,16 +159,18 @@
 
                         var instructions = $scope.competences[i].Instructions;
 
-                        // console.log(instructions);
+                  
 
                         instructions.forEach(function(obj) {
 
                             var instructionDate = resultLookup[obj.Id];
 
                             if (instructionDate) {
+                                obj.ItemId = instructionDate.ItemId;
                                 obj.TrainingDate = instructionDate.TrainingDate;
                                 obj.ExpiryDate = instructionDate.ExpiryDate;
                             } else {
+                                obj.ItemId = null;
                                 obj.TrainingDate = null;
                                 obj.ExpiryDate = null;
                             }
@@ -140,39 +180,7 @@
 
                 });
 
-            }).then(function() {
-
-                JSOMService.getInstructions().then(function(result) {
-
-                    var resultLookup = result.reduce(function(lookup, instruction) {
-                        lookup[instruction.Id] = instruction;
-                        return lookup;
-                    }, {});
-
-
-                    for (var i = 0; i < $scope.competences.length; i++) {
-
-                        var instructions = $scope.competences[i].Instructions;
-
-                        // console.log(instructions);
-
-                        instructions.forEach(function(obj) {
-
-                            var instruction = resultLookup[obj.Id];
-
-                            if (instruction) {
-                                obj.Category = instruction.Category;
-
-                            }
-
-                        });
-                    };
-
-
-
-                });
-
-            });;
+            });
 
         }
     }

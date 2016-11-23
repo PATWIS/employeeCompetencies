@@ -24,6 +24,10 @@ table {
     margin-left: auto;
 }
 
+.ms-Table tr th {
+	font-weight: bold;
+}
+
 .ms-Table tr td, .ms-Table tr th {
 	border: 1px solid #eaeaea;
 	height: 38px;
@@ -35,6 +39,19 @@ tr[ng-repeat-start], tr[ng-repeat-start] + tr{
 
 .ms-DatePicker-table td {
 	padding: 0;
+}
+
+.clickableElem{
+	color: #0078d7!important;
+    cursor: pointer;
+}
+
+.text-center {
+	 text-align: center;
+}
+
+.spiner {
+	width: 12px;
 }
 
 /*

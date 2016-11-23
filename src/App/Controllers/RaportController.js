@@ -91,9 +91,9 @@
                                         return;
                                     }
 
+ 
 
-
-                                    function inNMonths(n) {
+                                    $scope.inNMonths = function(n) {
                                         var d = new Date();
                                         d.setMonth(d.getMonth() + n);
                                         return d.toJSON().slice(0, 10);
@@ -105,14 +105,22 @@
                                         return local.toJSON().slice(0, 10);
                                     }
 
+                                    $scope.lessThan = function(prop, val) {
+                                        return function(obj){
+                                            var expirty = toJSONLocal(prop);
+                                            if (obj[prop] < inNMonths(val)) return true;
+                                        }
+                                    } 
 
-                                    var expirty = toJSONLocal(existInstruction.ExpiryDate);
+
+                                    $scope.expirty = toJSONLocal(existInstruction.ExpiryDate);
 
 
-                                    if (expirty < inNMonths(3)) {
+                                    // if (expirty < inNMonths(1)) {
 
                                         $scope.finalObject.push({
                                             Name: employee.Name !== currentEmployeeName ? employee.Name : '',
+                                            _Name: employee.Name,
                                             Instruction: existInstruction.InstructieName !== currentInstructionName ? existInstruction.InstructieName : '',
                                             Competence: competence.Name,
                                             TrainingDate: existInstruction.TrainingDate,
@@ -122,7 +130,7 @@
                                         currentEmployeeName = employee.Name;
                                         currentInstructionName = existInstruction.InstructieName;
 
-                                    }
+                                    // }
 
 
 
