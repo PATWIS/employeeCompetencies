@@ -5,14 +5,36 @@
     angular.module('app').controller('RaportController', ['$scope', 'JSOMService', RaportController]);
 
     function RaportController($scope, JSOMService) {
-       
+    
+        $scope.finalObject = false;
+        $scope.dataFiltersValues = ["Ends for 1 month", "Ends for 2 months", "Ends for 3 months"];
+        $scope.dataFilters = $scope.dataFiltersValues[""];
+
+
+
+
+
+
+        $scope.quantity = 100;
+
+
+
+        // LOCAL STORAGE 
+        var storage = JSON.parse(localStorage.getItem("instructions"));
+
+        if (storage.length) {
+            $scope.finalObject = storage;
+            return;
+        }
+
         init();
 
         function init() {
 
-            // function containstCompetence(competence) {
+            JSOMService.getSiteUrl().then(function(result) {
+                $scope.siteUrl = result;
 
-            // }
+            });
 
             return JSOMService.getEmployees().then(function(result) {
 
@@ -79,78 +101,101 @@
 
                             competence.Instructions.forEach(function(instruction) {
 
-                                    var existEmployee = resultLookupMedewerkerId[employee.Id];
+                                var existEmployee = resultLookupMedewerkerId[employee.Id];
 
-                                    if (!existEmployee) {
-                                        return;
+                                if (!existEmployee) {
+                                    return;
+                                }
+
+                                var existInstruction = resultLookupEmployeeInstructionsExist[instruction.Id + ',' + employee.Id];
+
+                                if (!existInstruction) {
+                                    return;
+                                }
+
+
+
+                                $scope.inNMonths = function(n) {
+                                    var d = new Date();
+                                    d.setMonth(d.getMonth() + n);
+                                    return d.toJSON().slice(0, 10);
+                                }
+
+                                function toJSONLocal(date) {
+                                    var local = new Date(date);
+                                    local.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                                    return local.toJSON().slice(0, 10);
+                                }
+
+                                $scope.lessThan = function(prop, val) {
+                                    return function(obj) {
+                                        var expirty = toJSONLocal(prop);
+                                        if (obj[prop] < inNMonths(val)) return true;
                                     }
-
-                                    var existInstruction = resultLookupEmployeeInstructionsExist[instruction.Id + ',' + employee.Id];
-
-                                    if (!existInstruction) {
-                                        return;
-                                    }
-
- 
-
-                                    $scope.inNMonths = function(n) {
-                                        var d = new Date();
-                                        d.setMonth(d.getMonth() + n);
-                                        return d.toJSON().slice(0, 10);
-                                    }
-
-                                    function toJSONLocal(date) {
-                                        var local = new Date(date);
-                                        local.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-                                        return local.toJSON().slice(0, 10);
-                                    }
-
-                                    $scope.lessThan = function(prop, val) {
-                                        return function(obj){
-                                            var expirty = toJSONLocal(prop);
-                                            if (obj[prop] < inNMonths(val)) return true;
-                                        }
-                                    } 
+                                }
 
 
-                                    $scope.expirty = toJSONLocal(existInstruction.ExpiryDate);
+                                $scope.expirty = toJSONLocal(existInstruction.ExpiryDate);
 
 
-                                    // if (expirty < inNMonths(1)) {
+                                // if (expirty < inNMonths(1)) {
 
-                                        $scope.finalObject.push({
-                                            Name: employee.Name !== currentEmployeeName ? employee.Name : '',
-                                            _Name: employee.Name,
-                                            Instruction: existInstruction.InstructieName !== currentInstructionName ? existInstruction.InstructieName : '',
-                                            Competence: competence.Name,
-                                            TrainingDate: existInstruction.TrainingDate,
-                                            ExpiryDate: existInstruction.ExpiryDate
-                                        });
+                                $scope.finalObject.push({
+                                    Name: employee.Name !== currentEmployeeName ? employee.Name : '',
+                                    _Name: employee.Name,
+                                    EmployeeId: employee.Id,
+                                    InstructionId: instruction.Id,
+                                    Instruction: existInstruction.InstructieName !== currentInstructionName ? existInstruction.InstructieName : '',
+                                    CompetenceId: competence.Id,
+                                    Competence: competence.Name,
+                                    TrainingDate: existInstruction.TrainingDate,
+                                    ExpiryDate: existInstruction.ExpiryDate
+                                });
 
-                                        currentEmployeeName = employee.Name;
-                                        currentInstructionName = existInstruction.InstructieName;
+                                currentEmployeeName = employee.Name;
+                                currentInstructionName = existInstruction.InstructieName;
 
-                                    // }
+                                // }
 
 
 
-                                })
-                                // $scope.finalObject.sort(function(a,b) {return (a.Instruction > b.Instruction) ? 1 : ((b.Instruction > a.Instruction) ? -1 : 0);} ); 
+                            })
 
                         })
 
 
 
-                    })
+                    });
 
-
-
+                    localStorage.setItem("instructions", JSON.stringify($scope.finalObject));
                 });
-                    
-            }).catch(function (errorMsg) {
-                    $scope.error = errorMsg;
-                });
+
+            }).catch(function(errorMsg) {
+                $scope.error = errorMsg;
+            });
 
         }
     }
+
+     angular.module('app').filter("myfilter", function() {
+             // $scope.dataFilters = $scope.dataFiltersValues[""];
+            return function(items) {
+                
+                
+                var dt = new Date();
+                dt.setMonth(dt.getMonth() + 2);
+                var arrayToReturn = [];
+                for (var i = 0; i < items.length; i++) {
+                    var tt = new Date(items[i].ExpiryDate);
+                    // console.log(tt);
+                    if (tt < dt) {
+                        arrayToReturn.push(items[i]);
+                       
+                    }
+                   
+                }
+
+                return arrayToReturn;
+            };
+        });
 })();

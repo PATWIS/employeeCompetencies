@@ -36,14 +36,7 @@
         };
         $scope.save = function(competenceID, data) {
 
-            var trainingDate = new Date(data.TrainingDate);
-            var today = new Date();
-
-            if (trainingDate > today) {
-                alert('You can not set a future date');
-                return;
-            }
-
+            
             
 
             if (data.TrainingDate == "") {

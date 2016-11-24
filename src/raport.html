@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-core/4.0.0/fabric.min.css">
+<link rel="stylesheet" href="https://appsforoffice.microsoft.com/fabric/fabric-js/1.0.0/fabric.components.min.css">
+<link rel="stylesheet" href="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/Styles/styles.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ngOfficeUiFabric/0.12.8/ngOfficeUiFabric.min.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/app.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Controllers/RaportController.js"></script>
+<script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Services/JSOMService.js"></script>
+
+<section ng-app="app" ng-controller="RaportController" >
+
+
+<div ng-show="!finalObject" class="spinner">
+    <uif-spinner>Loading...</uif-spinner>
+</div>
+<p ng-cloak ng-show="errorMsg" ><span>Something went wrong: </span>{{error}}</p>
+<div ng-cloak ng-show="finalObject" style="width: 900px;">
+<!--   <p>Loaded {{ (finalObject | filter:isQuestionInRange).length }} Items from List "Herhaling Data"</p> -->
+
+
+
+<div class="ms-TextField filter">
+                <label class="ms-Label">Data filter</label>
+                <select class="ms-TextField-field" ng-model="dataFilters">
+                  <option value="">No filter</option>
+                    <option ng-repeat="d in dataFiltersValues" value="{{$index}}" placeholder="select filter view">{{d}}</option>
+                </select>
+            </div>
+            
+<table class="ms-Table">
+    <thead>
+      <tr>
+      <!-- <th>#</th> -->
+      <th>Medewerker</th>        
+      <th>Instructie</th>
+      <th>Competentie</th>        
+      <th>Datum artekenen</th>        
+      <th>Datum herhaling</th>        
+
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="obj in finalObject | limitTo:quantity | myfilter:ExpiryDate track by $index" >
+        <!-- <td>{{$index +1}}</td> -->
+        <td><a class="elipsis" ng-href="{{siteUrl}}/Lists/Overzicht%20Medewerkers/Item/displayifs.aspx?ID={{obj.EmployeeId}}" ng-bind="obj.Name"></a></td>
+        <td><a class="elipsis"  ng-href="{{siteUrl}}/Production%20instructions/Forms/DispForm.aspx?ID={{obj.InstructionId}}" ng-bind="obj.Instruction"></a></td>
+        <td><a class="elipsis" ng-href="{{siteUrl}}/Lists/Overzicht%20Competenties/DispForm.aspx?ID={{obj.CompetenceId}}" ng-bind="obj.Competence"></a></td>
+        <td ng-bind="obj.TrainingDate | date:'dd/MM/yyyy'"></td>
+        <td ng-bind="obj.ExpiryDate | date:'dd/MM/yyyy'"></td>
+       
+      </tr>
+    </tbody>
+  </table>
+  
+</div>
+ 
+</section>

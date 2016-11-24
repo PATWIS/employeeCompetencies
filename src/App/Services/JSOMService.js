@@ -90,7 +90,7 @@
                                     })
                                 }
                             }
-                            localStorage.setItem("employees", JSON.stringify(result));
+                            // localStorage.setItem("employees", JSON.stringify(result));
                             deferred.resolve(result);
                         }, function(sender, args) {
                             deferred.reject(args.get_message());
@@ -286,10 +286,7 @@
                             result.Id = listItem.get_item("ID");
                             result.Category = listItem.get_item("Categorie");
 
-                            // localStorage.setItem("instructions", JSON.stringify(result));
-                            // LOCAL STORAGE 
-                            // var storedInstructions = JSON.parse(localStorage.getItem("instructions"));
-                            // console.log(storedInstructions)
+                          
                             deferred.resolve(result);
 
                         }, function(sender, args) {
@@ -358,8 +355,6 @@
                                     }
 
                                     itemPosition = instructions.get_listItemCollectionPosition();
-
-                                    console.log(itemPosition);
 
                                     if (itemPosition != null) {
                                         getListItemsByListItemCollection();
