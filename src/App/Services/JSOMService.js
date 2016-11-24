@@ -169,12 +169,12 @@
                         var competences = list.getItems(camlQuery);
 
                         clientCtx.load(competences, 'Include(Title, ID, Competentie_x0020_documenten)');
-                       
+
                         clientCtx.executeQueryAsync(function(sender, args) {
 
                             var listURL = listRootFolder.get_serverRelativeUrl();
                             console.log(listURL);
-                            
+
 
 
                             var enumerator = competences.getEnumerator();
@@ -183,9 +183,9 @@
                                 var instructions = [];
                                 var competencesItem = enumerator.get_current();
                                 var instructionsVals = competencesItem.get_item("Competentie_x0020_documenten");
-                                
+
                                 // var fullUrl = competencesItem.ParentList.ParentWeb.Site.MakeFullUrl(competencesItem.ParentList.DefaultDisplayFormUrl);
-                              
+
                                 if (instructionsVals.length === 0) {
                                     instructions.push({
                                         Name: ""
@@ -467,25 +467,62 @@
                 };
 
 
-                service.saveChanges = function(editData) {
+                service.saveChanges = function(editDataItem, employeeId) {
                     var deferred = $q.defer();
 
                     contextLoaded.promise.then(function() {
                         service.web = clientCtx.get_web();
 
                         var list = service.web.get_lists().getByTitle('Instructie Trainingen');
-                        var listItem = list.getItemById(editData.ItemId);
-                        listItem.set_item("DatumAftekenen", editData.TrainingDate);
-                        listItem.set_item("DatumHerhaling", editData.ExpiryDate);
-                        listItem.update();
+                        
+                    
+                        
+                        if (editDataItem.ItemId) {
+                            var listItem = list.getItemById(editDataItem.ItemId);
+                            listItem.set_item("DatumAftekenen", editDataItem.TrainingDate);
+                            listItem.set_item("DatumHerhaling", editDataItem.ExpiryDate);
+                            listItem.update();
 
-                        clientCtx.executeQueryAsync(function onQuerySucceeded() {
-                            alert('Item updated!');
-                            deferred.resolve();
-                        }, function onQueryFailed(sender, args) {
+                            clientCtx.executeQueryAsync(function onQuerySucceeded() {
+                                alert('Item updated!');
+                                deferred.resolve();
+                            }, function onQueryFailed(sender, args) {
 
-                            alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
-                        });
+                                alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                                deferred.reject();
+                            });
+
+
+                        } else {
+
+                            var itemCreateInfo = new SP.ListItemCreationInformation();
+                            var newItem = list.addItem(itemCreateInfo);
+
+                            var employeeLookupValue = new SP.FieldLookupValue();
+                            employeeLookupValue.set_lookupId(employeeId);
+
+                            var instructieLookupValue = new SP.FieldLookupValue();
+                            instructieLookupValue.set_lookupId(editDataItem.Id);
+
+                            newItem.set_item("Medewerker", employeeLookupValue);
+                            newItem.set_item("Instructie", instructieLookupValue);
+                            newItem.set_item("DatumAftekenen", editDataItem.TrainingDate);
+                            newItem.set_item("DatumHerhaling", editDataItem.ExpiryDate);
+                            
+                            newItem.update();
+                            clientCtx.load(list);
+
+                            clientCtx.executeQueryAsync(function onQuerySucceeded() {
+                                alert('Item created: ' + newItem.get_id());
+                                deferred.resolve();
+                            }, function onQueryFailed(sender, args) {
+                                alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                                deferred.reject();
+                            });
+                            
+
+                        }
+
 
                     });
 

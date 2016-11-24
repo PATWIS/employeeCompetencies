@@ -1,9 +1,12 @@
 table {
   border: none;
+  margin-right: 0!important;
+  margin-left: 0!important;
+
 }
 
-.editDate {
-	width: 138px;
+.date-row {
+	width: 110px;
 }
 
 .ms-DatePicker {
@@ -18,10 +21,14 @@ table {
 	min-width: 0!important;
 }
 
+#employeeCard {
+	padding: 0 25px;
+}
+
 #employeeCard > .ms-Table {
 	width: 651px;
-	margin-right: auto;
-    margin-left: auto;
+	/*margin-right: auto;*/
+    /*margin-left: auto;*/
 }
 
 .ms-Table tr th {
@@ -53,6 +60,25 @@ tr[ng-repeat-start], tr[ng-repeat-start] + tr{
 .spiner {
 	width: 12px;
 }
+
+.success {
+	color: #107c10;
+}
+
+.error {
+	color: #e81123;
+}
+
+.elipsis {
+	line-height: 1;
+    width: 140px;
+     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+     display: inline-block!important;
+
+}
+
 
 /*
 Styles for ms-Datapicker

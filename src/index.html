@@ -11,9 +11,11 @@
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Controllers/MainController.js"></script>
 <script src="https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Style%20Library/App/Services/JSOMService.js"></script>
 <section id="employeeCard" ng-app="app" ng-controller="MainController">
+<div ng-show="loading" ng-cloak class="spinner">
+        <uif-spinner> Loading...</uif-spinner>
+</div>
 
-
- <table class="ms-Table">
+ <table ng-hide="loading" ng-cloak class="ms-Table">
     <thead>
       <tr>
       <th>Competentie</th>
@@ -25,21 +27,27 @@
     </thead>
     <tbody>
       <tr ng-repeat-start="competence in competences">
-        <td rowspan="{{competence.Instructions.length+1}}"><a ng-href="{{siteUrl}}/Lists/Overzicht%20Competenties/DispForm.aspx?ID={{competence.Id}}" ng-bind="competence.Name"></a></td>
+        <td  rowspan="{{competence.Instructions.length+1}}"><a class="elipsis" ng-href="{{siteUrl}}/Lists/Overzicht%20Competenties/DispForm.aspx?ID={{competence.Id}}" ng-bind="competence.Name"></a></td>
       </tr>
       <tr ng-repeat="instruction in competence.Instructions" ng-repeat-end>
-        <td ng-model="instruction.Name"><span ng-show="editingData[instruction.Id + '-isEdit']"> <i class="ms-Icon ms-Icon--SkypeCheck success"></i> </span><a ng-href="{{siteUrl}}/Production%20instructions/Forms/DispForm.aspx?ID={{instruction.Id}}" ng-bind="instruction.Name"></a></td>
-        <td class="editDate">
+        <td ng-model="instruction.Name"><span ng-show="editingData[instruction.Id + '-success']"> <i class="ms-Icon ms-Icon--SkypeCircleCheck
+ success"></i> </span><span ng-show="editingData[instruction.Id + '-error']"> <i class="ms-Icon ms-Icon--StatusErrorFull error"></i> </span><a class="elipsis"  ng-href="{{siteUrl}}/Production%20instructions/Forms/DispForm.aspx?ID={{instruction.Id}}" ng-bind="instruction.Name"></a></td>
+        <td class="date-row">
             <div ng-hide="editingData[competence.Id+'-'+instruction.Id] && !isLoaded"><span ng-hide="instruction.TrainingDate == ''">{{instruction.TrainingDate | date:'dd/MM/yyyy'}}</span><span ng-show="instruction.TrainingDate == ''">not set</span></div>
           <div class="ms-TextField" ng-show="editingData[competence.Id+'-'+instruction.Id] && !isLoaded">
             <uif-datepicker uif-date-format="dd/mm/yyyy" ng-model="instruction.TrainingDate"></uif-datepicker>
           </div>
         </td>
-        <td><span ng-hide="instruction.TrainingDate == ''">{{instruction.ExpiryDate | date:'dd/MM/yyyy'}}</span><span ng-show="instruction.TrainingDate == ''">not set</span></td>
-        <td><div class="text-center" ng-hide="editingData[competence.Id+'-'+instruction.Id] || !isVisible"><i class="ms-Icon ms-Icon--Edit clickableElem" ng-click="modify(competence.Id, instruction)"></i></div>
-        <div class="text-center" ng-show="editingData[competence.Id+'-'+instruction.Id] && !isLoaded"><i class="ms-Icon ms-Icon--Save clickableElem" ng-click="save(competence.Id, instruction)"></i></div><div class="spiner" ng-show="editingData[competence.Id+'-'+instruction.Id] && isLoaded"><uif-spinner></uif-spinner></div></td>
+        <td calss="date-row"><span ng-hide="!instruction.ExpiryDate">{{instruction.ExpiryDate | date:'dd/MM/yyyy'}}</span><span ng-show="!instruction.ExpiryDate">not set</span></td>
+        <td>
+        <div class="text-center" ng-hide="editingData[competence.Id+'-'+instruction.Id] || !isVisible"><i class="ms-Icon ms-Icon--Edit clickableElem" ng-click="modify(competence.Id, instruction)"></i></div>
+        <div class="text-center" ng-show="editingData[competence.Id+'-'+instruction.Id] && !isLoaded"><i class="ms-Icon ms-Icon--Save clickableElem" ng-click="save(competence.Id, instruction)"></i></div>
+        <div class="spiner" ng-show="editingData[competence.Id+'-'+instruction.Id] && isLoaded"><uif-spinner></uif-spinner></div>
+        </td>
+        <!-- <td class="text-center" ng-show="editingData[competence.Id+'-'+instruction.Id] && !isLoaded"><i class="ms-Icon ms-Icon--Cancel clickableElem" ng-click=""></i></div></td> -->
       </tr>
 
     </tbody>
   </table>
+  
 </section>

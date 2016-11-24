@@ -5,44 +5,77 @@
     angular.module('app').controller('MainController', ['$scope', 'JSOMService', MainController]);
 
     function MainController($scope, JSOMService, $timeout) {
- 
+        $scope.loading = true;
         $scope.employeeId = getUrlVars();
         $scope.editingData = {};
-        $scope.value; 
-        // $scope.value = "https://infoprojektgdansk.sharepoint.com/sites/SPDevInstructions/Lists/Overzicht%20Competenties/DispForm.aspx?ID=188"
         $scope.isVisible = true;
         $scope.isLoaded = false;
- 
+
         $scope.modify = function(competenceID, data) {
-            
+
             $scope.editingData[competenceID + '-' + data.Id] = true;
             $scope.isVisible = false;
             $scope.isLoaded = true;
-            
-            JSOMService.getInstructionCategory(data.Id).then(function(result) {  
+
+            if (!data.Category) {
+
+                JSOMService.getInstructionCategory(data.Id).then(function(result) {
                     $scope.CategoryLoaded = true;
-                     $scope.isLoaded = false;
-                    data.Category= result.Category;
+                    data.Category = result.Category;
+                    $scope.isLoaded = false;
+
                 });
+
+            } else {
+                $scope.isLoaded = false;
+            }
+
+
+
+
         };
         $scope.save = function(competenceID, data) {
-             $scope.isLoaded = true;
-            // $scope.isVisible = true;
-           
-            setNewValue(data);
-             
 
-             JSOMService.saveChanges(data).then(function(){
-              $scope.editingData[competenceID + '-' + data.Id] = false;
-              $scope.editingData[data.Id + '-isEdit'] = true;
-              $scope.isLoaded = false;
-              $scope.isVisible = true;
-                     
-               // $scope.reset(); 
-             });
+            var trainingDate = new Date(data.TrainingDate);
+            var today = new Date();
+
+            if (trainingDate > today) {
+                alert('You can not set a future date');
+                return;
+            }
+
             
+
+            if (data.TrainingDate == "") {
+                alert('please set the Date');
+                return;
+            }
+
             
-            
+
+            $scope.isLoaded = true;
+            $scope.noChange = false;
+            setNewValue(data);
+
+         
+                JSOMService.saveChanges(data, $scope.employeeId).then(function() {
+                    $scope.editingData[competenceID + '-' + data.Id] = false;
+                    $scope.editingData[data.Id + '-success'] = true;
+                    $scope.isLoaded = false;
+                    $scope.isVisible = true;
+
+                    // $scope.reset(); 
+                }).catch(function() {
+
+                    $scope.editingData[competenceID + '-' + data.Id] = false;
+                    $scope.editingData[data.Id + '-error'] = true;
+                    $scope.isLoaded = false;
+                    $scope.isVisible = true;
+                    data.TrainingDate = null;
+                    data.ExpiryDate = null;
+                    setNewValue(data);
+
+                });
         };
 
         $scope.reset = function() {
@@ -55,25 +88,23 @@
                 competence.Instructions.forEach(function(instruction) {
 
                     if (instruction.Id === i.Id) {
-
-                        instruction.TrainingDate = i.TrainingDate;
-
+                       
                         switch (i.Category) {
                             case "Cat. 1":
-                                instruction.ExpiryDate = addNYears(i.TrainingDate,1);
+                                instruction.ExpiryDate = addNYears(i.TrainingDate, 1);
                                 break;
                             case "Cat. 2":
-                                instruction.ExpiryDate = addNYears(i.TrainingDate,2);
+                                instruction.ExpiryDate = addNYears(i.TrainingDate, 2);
                                 break;
                             case "Cat. 3":
-                                instruction.ExpiryDate = addNYears(i.TrainingDate,3);
+                                instruction.ExpiryDate = addNYears(i.TrainingDate, 3);
                                 break;
-                            default: 
-                                instruction.ExpiryDate = addNYears(i.TrainingDate,99);
+                            default:
+                                instruction.ExpiryDate = addNYears(i.TrainingDate, 99);
 
                         }
 
-                        
+
 
                     }
                 });
@@ -95,12 +126,12 @@
             return vars.ID;
         }
 
-                
-
-           
 
 
-         
+
+
+
+
 
 
 
@@ -110,13 +141,13 @@
 
             JSOMService.getSiteUrl().then(function(result) {
                 $scope.siteUrl = result;
-            
+
             });
 
             // var valuesToLoad = 3;
             JSOMService.getEmployeeCompetences($scope.employeeId).then(function(result) {
                 $scope.competences = result;
-                
+
 
             }).then(function() {
 
@@ -131,7 +162,7 @@
                         return lookup;
                     }, {});
 
-                    
+
 
 
                     $scope.competences.forEach(function(competence) {
@@ -159,7 +190,7 @@
 
                         var instructions = $scope.competences[i].Instructions;
 
-                  
+
 
                         instructions.forEach(function(obj) {
 
@@ -179,6 +210,10 @@
                     };
 
                 });
+
+
+                $scope.loading = false;
+
 
             });
 
